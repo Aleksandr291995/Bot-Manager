@@ -1,10 +1,10 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
-const fs = require('fs');
 
-// Замени токеном бота
+// Замените токен вашим токеном бота
 const token = '7327513055:AAGm_ZI9DaIJ-jofagf0agJBQWkz_q1z8A0';
-const channelUsername = '@nosenkovcourse'; // Имя канала
+const channelUsername = '@nosenkovcourse'; // Имя вашего канала
+const giftLink = 'https://drive.google.com/file/d/1IHmKHk4lXOTNY-Z9zcr_4TFiiNEBCvwC/view?usp=drivesdk'; // Ссылка на ваш подарок
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -29,6 +29,8 @@ bot.on('callback_query', async (callbackQuery) => {
 
   if (callbackQuery.data === 'check_subscription') {
     try {
+      console.log(`Проверка подписки для пользователя: ${userId}`);
+
       const response = await axios.get(`https://api.telegram.org/bot${token}/getChatMember`, {
         params: {
           chat_id: channelUsername,
@@ -36,14 +38,14 @@ bot.on('callback_query', async (callbackQuery) => {
         }
       });
 
+      console.log(`Ответ от Telegram API: ${JSON.stringify(response.data)}`);
+
       const { status } = response.data.result;
 
       if (status === 'member' || status === 'administrator' || status === 'creator') {
-        bot.sendMessage(chatId, 'Спасибо за подписку! Вот ваш подарок.');
-
-        // Отправка файла в качестве подарка
-        const filePath = './file/ints.pdf';
-        bot.sendDocument(chatId, fs.createReadStream(filePath));
+        bot.sendMessage(chatId, 'Спасибо за подписку! Вот ваш подарок.').then(() => {
+          bot.sendMessage(chatId, `Ваш подарок: ${giftLink}`);
+        });
       } else {
         bot.sendMessage(chatId, 'Вы не подписаны на канал. Пожалуйста, подпишитесь, чтобы получить подарок.');
       }
